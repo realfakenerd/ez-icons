@@ -1,17 +1,18 @@
 <script lang="ts">
-	import { onMount } from "svelte";
-	import type icon from './icons/index.js';
+	import { onMount } from 'svelte';
+	import type iconImported from './icons/index.js';
+	import type { TIcon } from './types.js';
+	import icons from './icons/index.js';
 
-	let d: string | any = '';
+	let icon: TIcon = '';
 	export let width = 24;
-	export let height = width;
+	$: height = width;
 
-	export let name: keyof typeof icon;
-
+	export let name: keyof typeof iconImported;
 	onMount(async () => {
-		const icon = await import('./icons/index.js')
-		d = icon.default[name]
-	})
+		const awaitIcon = await import('./icons/index.js');
+		icon = awaitIcon.default[name];
+	});
 </script>
 
 <svg
@@ -20,5 +21,25 @@
 	width={width + 'px'}
 	viewBox="0 0 24 24"
 >
-	<path {d} />
+	{#if typeof icon === 'string'}
+		<path d={icon} />
+	{:else}
+		{#if typeof icon.d === 'string'}
+			<path d={icon.d} />
+		{:else}
+			{#each icon.d as d}
+				<path {d} />
+			{/each}
+		{/if}
+
+		{#if icon.circle}
+			{#if Array.isArray(icon.circle)}
+				{#each icon.circle as c}
+					<circle cy={c?.cy} cx={c?.cx} r={c?.r} />
+				{/each}
+			{:else}
+				<circle cy={icon.circle?.cy} cx={icon.circle?.cx} r={icon.circle?.r} />
+			{/if}
+		{/if}
+	{/if}
 </svg>
